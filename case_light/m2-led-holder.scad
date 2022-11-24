@@ -41,19 +41,31 @@ slack = 1;
 CUT = 0.01;
 $fs = .5;
 
+linear_rail_screw_spacing = 25;
+linear_rail_margin = 19;
+linear_rail_buffer = 5;
+linear_rail_screw_x = 100;
+linear_rail_screw_dia = 4.25;
+linear_rail_num_screws = 1;
+linear_rail_washer_clearance = 7.75;
+
+support_start = led_frame_x + 3;
+
 module led_plate() {
-    module cyl(d, x, y) {
+    module cyl(d, x, y, h=plate_height) {
         translate([x, y])
-            cylinder(d=d, h=plate_height);
+            cylinder(d=d, h);
     }
     led_frame_width = (led_width + led_wall) * led_tracks;
     frame_width = led_frame_width - led_wall + 2 * outside_wall;
+
     //echo(frame_width);
     hull_dia = 3;
     hull_left = led_frame_x;
     hull_right = led_frame_x + led_frame_length + led_bump_length + led_wire_length;
     hull_y1 = led_frame_y - hull_dia/2;
     hull_y2 = led_frame_y - frame_width + hull_dia/2;
+
     module plate() {
         hull() {
             cyl(screw_holder, 0, 0);
@@ -70,6 +82,14 @@ module led_plate() {
             cyl(hull_dia, hull_right, hull_y2);
             cyl(screw_holder, m2_rscrew_x, 0);
         }
+
+        // Linear rail support bump out
+        hull() {
+            cyl(hull_dia, support_start + linear_rail_screw_x - linear_rail_buffer, hull_y2 + -10);
+            cyl(hull_dia, support_start + linear_rail_screw_x - linear_rail_buffer, hull_y2 + -1);
+            cyl(hull_dia, support_start + (linear_rail_screw_x + (linear_rail_screw_spacing * (linear_rail_num_screws-1))) + linear_rail_buffer, hull_y2 + -10);
+            cyl(hull_dia, support_start + (linear_rail_screw_x + (linear_rail_screw_spacing * (linear_rail_num_screws-1))) + linear_rail_buffer, hull_y2 + -1);
+        }
     }
     module led_track() {
         // Main channel to hold leds
@@ -85,6 +105,7 @@ module led_plate() {
         translate([led_frame_length + led_bump_length, 0, -99])
             cube([led_wire_length, led_width, 99 + plate_height + 2*CUT]);
     }
+
     track_y = led_frame_y - outside_wall - led_width;
     difference() {
         plate();
@@ -96,6 +117,23 @@ module led_plate() {
             y = track_y - i * (led_width + led_wall);
             translate([led_frame_x - track_offsets[i], y, led_frame_height])
                 led_track();
+        }
+
+        // Linear rail support to prevent sagging
+        translate([support_start, hull_y2]) {
+            // Screw hole
+            for (i=[0:linear_rail_num_screws-1]) {
+                translate([linear_rail_screw_x + (linear_rail_screw_spacing * i), -4.5-(2.5/2), -CUT]) {
+                    cylinder(d=linear_rail_screw_dia, h=plate_height  + 2*CUT);
+                }
+            }
+
+            // Spacing for nut + washer on the linear rail support
+            for (i=[0:linear_rail_num_screws-1]) {
+                translate([linear_rail_screw_x + (linear_rail_screw_spacing * i), -4.5-(2.5/2), -CUT]) {
+                    cylinder(d=linear_rail_washer_clearance, h=2  + 2*CUT);
+                }
+            }
         }
     }
 }

@@ -16,3 +16,8 @@ For the LEDs, I purchased a "24V white LED strip without power supply"
 from the strip and then soldered wires to them.  I soldered those five
 pairs of wires into one pair of wires and then connected that to the
 "E1 mosfet" on the electronics.
+
+2022 Update: The center of the case light holder was sagging when
+printing large amounts of ABS with the printer enclosed.  A support
+bump-out was added to attach to a M2.5 screw on the X-Axis linear rail
+for extra support to prevent the sagging.
